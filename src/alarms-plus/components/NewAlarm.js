@@ -1,19 +1,14 @@
 import React from 'react';
 import { StyleSheet, Text, View, Button } from 'react-native';
-import { sirenOn, sirenOff } from '../Redux/Siren/sirenSlice';
 import { useDispatch } from 'react-redux';
 
-export default function NewAlarm(props) {
+export default function NewAlarm({navigation}) {
     const dispatch = useDispatch();
     return (
     <View style={styles.container}>
         <Button
             title="Create New Alarm"
-            onPress={() => dispatch(sirenOn())}
-        />
-        <Button
-            title="Create New Alarm"
-            onPress={() => dispatch(sirenOff())}
+            onPress={() => navigation.navigate('New Alarm')}
         />
     </View>
     );

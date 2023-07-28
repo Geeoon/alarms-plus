@@ -1,37 +1,57 @@
 import { StatusBar } from 'expo-status-bar';
-import { Alert, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { View } from 'react-native';
 
 import MainScreen from './components/MainScreen';
+import NewAlarmScreen from './components/NewAlarmScreen';
+import SirenScreen from './components/SirenScreen';
+import { useEffect, createRef } from 'react';
+import { useSelector } from 'react-redux';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  const sirenOn = useSelector((state) => state.siren.isOn);
+  const navRef = createRef();
+
+  useEffect(() => {
+    if (navRef.current) {
+      if (sirenOn) {
+        navRef.current?.navigate('Siren On');
+      } else {
+        navRef.current?.navigate('Main');
+      }
+    }
+  }, [sirenOn, navRef]);
+
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}>
-        <Stack.Screen
-          name="Main"
-          component={MainScreen}
-          options={{title: 'Alarms Plus'}}
-        />
-      </Stack.Navigator>
+    <NavigationContainer ref={navRef}>
+      <View style={{flex: 1, backgroundColor: '#060606'}}>
+        <Stack.Navigator
+        initialRouteName='Main'
+        screenOptions={{
+          headerStyle: { backgroundColor: '#000' },
+          headerTintColor: '#fff',
+        }}>
+          <Stack.Screen
+            name="Main"
+            component={MainScreen}
+            options={{title: 'Alarms Plus'}}
+          />
+          <Stack.Screen
+            name="New Alarm"
+            component={NewAlarmScreen}
+            options={{title: 'Create a New Alarm'}}
+          />
+          <Stack.Screen
+            name="Siren On"
+            component={SirenScreen}
+            options={{title: 'Alarm Activated'}}
+          />
+        </Stack.Navigator>
+      </View>
       <StatusBar style="light" />
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: 30,
-    flex: 1,
-    backgroundColor: '#010101',
-  },
-  text: {
-    color: '#ffffff',
-  },
-});
