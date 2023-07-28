@@ -21,7 +21,7 @@ export default function NewAlarmScreen({navigation}) {
           // TODO: add time to date
           dispatch(addAlarm({
               name: name,
-              date: date,
+              date: date.getTime(),
               repeats: repeats,
               repeatInterval: repeatInterval,
           }));
