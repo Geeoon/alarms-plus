@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 export default function Alarm(props) {
     return (
         <View style={styles.container}>
-            <Text style={styles.text}>{props.time}</Text>
+            <Text style={styles.text}>{props.name}</Text>
         </View>
     );
 }
@@ -14,6 +14,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#333333',
         borderRadius: 5,
         padding: 5,
+        margin: 5,
     },
 
     text: {

@@ -13,6 +13,7 @@ export const sirenSlice = createSlice({
         },
         sirenOff: (state) => {
             state.isOn = false;
+            state.alarmName = null;
         },
     }
 });

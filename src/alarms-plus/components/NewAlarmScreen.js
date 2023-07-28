@@ -1,23 +1,38 @@
 import { useState, useCallback } from 'react';
 import { Alert, StyleSheet, Text, View, Button, TextInput } from 'react-native';
 import CalendarPicker from 'react-native-calendar-picker';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { addAlarm } from '../Redux/Alarms/alarmsSlice';
 
 export default function NewAlarmScreen({navigation}) {
-    const [date, setDate] = useState(new Date());
-    const [repeats, setRepeats] = useState(5);
-    const [repeatInterval, setRepeatInterval] = useState(5);
-    const [name, setName] = useState('');
+  const alarmArray = useSelector((state) => state.alarms.alarms);
+  const dispatch = useDispatch();
+  
+  const [name, setName] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [repeats, setRepeats] = useState(5);
+  const [repeatInterval, setRepeatInterval] = useState(5);
 
-    const createAlarm = useCallback(() => {
-        if (date && repeats && repeatInterval && name) {
-            // add time to date
-            // add to store
-            Alert.alert('Alarm created.');
+  const createAlarm = useCallback(() => {
+      if (date && repeats && repeatInterval && name) {
+        if (alarmArray.findIndex((alarm) => alarm.name === name) === -1) {
+          Alert.alert('Alarm created.');
+          // TODO: add time to date
+          dispatch(addAlarm({
+              name: name,
+              date: date,
+              repeats: repeats,
+              repeatInterval: repeatInterval,
+          }));
             navigation.navigate('Main');
         } else {
-            Alert.alert('Your alarm needs a name.');
+          Alert.alert('Alarm with same name already exists.');
         }
-    }, [date, repeats, repeatInterval, name]);
+      } else {
+        Alert.alert('Your alarm needs a name.');
+      }
+  }, [name, date, repeats, repeatInterval, alarmArray]);
 
   return (
     <View style={styles.container}>

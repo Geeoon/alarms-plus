@@ -7,12 +7,10 @@ export const alarmsSlice = createSlice({
     },
     reducers: {
         addAlarm: (state, action) => {
-            if (state.alarms.findIndex(alarm => alarm.name === action.name) === -1) {
-                state.alarms = [...state.alarms, action.alarm];
-            }
+            state.alarms = [...state.alarms, action.payload];
         },
         removeAlarm: (state, action) => {
-            state.alarms = state.alarms.filter(alarm => alarm.name !== action.name);
+            state.alarms = state.alarms.filter(alarm => alarm.name !== action.payload.name);
         },
     }
 });
