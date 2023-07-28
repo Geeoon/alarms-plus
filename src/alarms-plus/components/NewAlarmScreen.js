@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Alert, StyleSheet, Text, View, Button, TextInput } from 'react-native';
 import CalendarPicker from 'react-native-calendar-picker';
 import { useDispatch, useSelector } from 'react-redux';
+import { SelectList } from 'react-native-dropdown-select-list';
 
 import { addAlarm } from '../Redux/Alarms/alarmsSlice';
 
@@ -45,6 +46,17 @@ export default function NewAlarmScreen({navigation}) {
             <View style={styles.inputContainer}>
                 <Text style={styles.text}>Minutes Between Repeats</Text>
                 <TextInput onChangeText={text => setRepeatInterval((text != '') ? parseInt(text) : 1)} style={styles.numberInput} inputMode='numeric' placeholderTextColor='#999999' value={'' + repeatInterval}/>
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.text}>Time: </Text>
+              <TextInput onChangeText={(text) => {}} style={styles.numberInput} inputMode='numeric' value={date.toLocaleTimeString().split(':')[0]}/>
+              <Text style={styles.text}>:</Text>
+              <TextInput onChangeText={(text) => {}} style={styles.numberInput} inputMode='numeric' value={date.toLocaleTimeString().split(':')[1]}/>
+              <Button title={date.toLocaleTimeString().split(' ')[1]} onPress={() => {date.getHours() >= 12 ?
+                setDate(new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() - 12, date.getMinutes(), date.getMilliseconds())) : 
+                setDate(new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() + 12, date.getMinutes(), date.getMilliseconds()))
+              }}/>
+              <Text style={styles.text}>{date.getHours()}</Text>
             </View>
             <View style={{backgroundColor: '#333333', margin: 10}}>
                 <CalendarPicker 

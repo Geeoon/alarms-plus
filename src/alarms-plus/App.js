@@ -2,12 +2,12 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View } from 'react-native';
+import { useEffect, createRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 import MainScreen from './components/MainScreen';
 import NewAlarmScreen from './components/NewAlarmScreen';
 import SirenScreen from './components/SirenScreen';
-import { useEffect, createRef } from 'react';
-import { useSelector } from 'react-redux';
 
 const Stack = createNativeStackNavigator();
 

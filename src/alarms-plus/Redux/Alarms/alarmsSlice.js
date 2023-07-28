@@ -12,9 +12,12 @@ export const alarmsSlice = createSlice({
         removeAlarm: (state, action) => {
             state.alarms = state.alarms.filter(alarm => alarm.name !== action.payload.name);
         },
+        removeAlarmsBefore: (state, action) => {
+            state.alarms = state.alarms.filter(alarm => alarm.date >= action.payload.date);
+        },
     }
 });
 
-export const { addAlarm, removeAlarm } = alarmsSlice.actions;
+export const { addAlarm, removeAlarm, removeAlarmsBefore } = alarmsSlice.actions;
 
 export default alarmsSlice.reducer;
