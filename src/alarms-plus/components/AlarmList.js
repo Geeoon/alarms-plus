@@ -1,42 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text, ScrollView, Button } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
+import Alarm from './Alarm';
 
 export default function AlarmList(props) {
     return (
     <ScrollView style={styles.container}>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-        <Text style={styles.text}>Alarm AAAAAAAAAAAAAAist</Text>
-
+        <Alarm time={9999999}/>
     </ScrollView>
     );
 }
@@ -45,7 +14,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexGrow: 60,
-        // alignItems: 'center',
     },
 
     text: {

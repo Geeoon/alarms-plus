@@ -1,19 +1,27 @@
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import NextAlarm from './components/NextAlarm';
-import NewAlarm from './components/NewAlarm';
-import AlarmList from './components/AlarmList';
+import MainScreen from './components/MainScreen';
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <NextAlarm time={100} />
-      <NewAlarm />
-      <AlarmList />
-      <StatusBar style="light"/>
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}>
+        <Stack.Screen
+          name="Main"
+          component={MainScreen}
+          options={{title: 'Alarms Plus'}}
+        />
+      </Stack.Navigator>
+      <StatusBar style="light" />
+    </NavigationContainer>
   );
 }
 

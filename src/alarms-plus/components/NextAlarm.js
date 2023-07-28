@@ -1,10 +1,12 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useSelector } from 'react-redux';
 
 export default function NextAlarm(props) {
+    const sirenOn = useSelector((state) => state.siren.isOn);
     return (
     <View style={styles.container}>
-        <Text style={styles.text}>Next Alarm In {props.time}</Text>
+        <Text style={styles.text}>Next Alarm In {props.time} Siren status: { sirenOn ? "On" : "Off"}</Text>
     </View>
     );
 }
