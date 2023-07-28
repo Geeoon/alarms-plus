@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "alarms-plus",
+    "slug": "alarms-plus",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "name": "alarms-plus"
+}
