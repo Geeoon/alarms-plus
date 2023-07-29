@@ -24,14 +24,13 @@ export default function NewAlarmScreen({navigation}) {
   const createAlarm = useCallback(() => {
       if (date && repeats && repeatInterval && name) {
         if (alarmArray.findIndex((alarm) => alarm.name === name) === -1) {
-          Alert.alert('Alarm created.');
-          // TODO: add time to date
           dispatch(addAlarm({
-              name: name,
-              date: date.getTime(),
-              repeats: repeats,
-              repeatInterval: repeatInterval,
+            name: name,
+            date: date.getTime(),
+            repeats: repeats,
+            repeatInterval: repeatInterval,
           }));
+            Alert.alert('Alarm created.');
             navigation.navigate('Main');
         } else {
           Alert.alert('Alarm with same name already exists.');
@@ -40,6 +39,10 @@ export default function NewAlarmScreen({navigation}) {
         Alert.alert('Your alarm needs a name.');
       }
   }, [name, date, repeats, repeatInterval, alarmArray]);
+
+  useEffect(() => {
+    setDate(new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), 0, 0));
+  }, [showPicker]);
 
   return (
     <View style={styles.container}>
