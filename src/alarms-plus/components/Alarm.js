@@ -22,7 +22,7 @@ export default function Alarm(props) {
     return (
         <View style={styles.container}>
             <View style={styles.info}>
-                <Text style={styles.name}>{props.name}</Text>
+                <Text style={styles.name}>{props.name}</Text>{Date.now() > props.date && <Text style={styles.past}>Past Alarm</Text>}
                 <Text style={styles.date}>{new Date(props.date).toLocaleDateString([], {weekday: 'short', hour: '2-digit', minute:'2-digit'})}</Text>
             </View>
             <Button title='DELETE' onPress={onDelete}/>
@@ -38,6 +38,11 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         padding: 5,
         margin: 5,
+    },
+
+    past: {
+        color: 'red',
+        fontSize: 25,
     },
 
     info: {
