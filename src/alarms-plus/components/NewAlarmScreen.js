@@ -68,7 +68,7 @@ export default function NewAlarmScreen({navigation}) {
                 />
             </View>
             <View style={{backgroundColor: '#333333', margin: 10}}>
-              <Text style={styles.text}>{date.toString()}</Text>
+              <Text style={styles.text}>{date.toLocaleDateString([], {weekday: 'short', hour: '2-digit', minute:'2-digit'})}</Text>
               <Button title='Change Date' onPress={() => {
                 setPickerMode('date');
                 setShowPicker(true);
