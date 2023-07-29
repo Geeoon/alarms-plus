@@ -66,16 +66,22 @@ export default function NewAlarmScreen({navigation}) {
                   value={'' + repeatInterval}
                 />
             </View>
-            <View style={{backgroundColor: '#333333', margin: 10}}>
+            <View style={{backgroundColor: '#333333', margin: 10, padding: 5}}>
               <Text style={styles.text}>{date.toLocaleDateString([], {weekday: 'short', hour: '2-digit', minute:'2-digit'})}</Text>
-              <Button title='Change Date' onPress={() => {
-                setPickerMode('date');
-                setShowPicker(true);
-              }}/>
-              <Button title='Change Time' onPress={() => {
-                setPickerMode('time');
-                setShowPicker(true);
-              }}/>
+              <View style={styles.changeContainer}>
+                <View style={{margin: 5, flex: 1}} >
+                  <Button title='Change Date' onPress={() => {
+                    setPickerMode('date');
+                    setShowPicker(true);
+                  }}/>
+                </View>
+                <View style={{margin: 5, flex: 1}} >
+                  <Button title='Change Time' onPress={() => {
+                    setPickerMode('time');
+                    setShowPicker(true);
+                  }}/>
+                </View>
+              </View>
               {showPicker && <RNDateTimePicker 
                 testID="dateTimePicker"
                 value={date}
@@ -131,5 +137,8 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 20,
     alignSelf: 'center'
+  },
+  changeContainer: {
+    flexDirection: 'row',
   },
 });
