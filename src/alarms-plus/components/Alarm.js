@@ -23,7 +23,7 @@ export default function Alarm(props) {
         <View style={styles.container}>
             <View style={styles.info}>
                 <Text style={styles.name}>{props.name}</Text>
-                <Text style={styles.date}>{new Date(props.date).toLocaleString('en-US', { weekday: 'short' })}</Text>
+                <Text style={styles.date}>{new Date(props.date).toLocaleDateString([], {weekday: 'short', hour: '2-digit', minute:'2-digit'})}</Text>
             </View>
             <Button title='DELETE' onPress={onDelete}/>
         </View>

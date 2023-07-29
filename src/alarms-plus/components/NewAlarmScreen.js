@@ -2,10 +2,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { Alert, StyleSheet, Text, View, Button, TextInput } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import RNDateTimePicker from '@react-native-community/datetimepicker'
-// purge @react-native-community/datetimepicker
-// purge react-native-dropdown-select-list
-// purge react-native-calendar-picker
-// purge react-native-date-picker
 
 import { addAlarm } from '../Redux/Alarms/alarmsSlice';
 
@@ -84,7 +80,7 @@ export default function NewAlarmScreen({navigation}) {
                 testID="dateTimePicker"
                 value={date}
                 mode={pickerMode}
-                is24Hour={false}
+                minimumDate={new Date()}
                 onChange={(event, selectedDate) => {
                   setShowPicker(false);
                   setDate(selectedDate);
