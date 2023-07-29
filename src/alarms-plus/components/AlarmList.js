@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, ScrollView, Text } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import Alarm from './Alarm';
 
-export default function AlarmList(props) {
+export default function AlarmList() {
     const alarmArray = useSelector((state) => state.alarms.alarms);
 
     return (

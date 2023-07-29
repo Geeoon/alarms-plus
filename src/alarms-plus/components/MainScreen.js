@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import NextAlarm from './NextAlarm';
 import NewAlarm from './NewAlarm';
@@ -7,9 +7,9 @@ import AlarmList from './AlarmList';
 export default function MainScreen({navigation}) {
   return (
     <View style={styles.container}>
-      <NextAlarm time={1900} />
+      <NextAlarm />
       <NewAlarm navigation={navigation} />
-      <AlarmList alarms={[]} />
+      <AlarmList />
     </View>
   );
 }

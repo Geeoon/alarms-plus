@@ -36,10 +36,6 @@ export default function NewAlarmScreen({navigation}) {
       }
   }, [name, date, repeats, repeatInterval, alarmArray]);
 
-  useEffect(() => {
-    setDate(new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), 0, 0));
-  }, [showPicker]);
-
   return (
     <View style={styles.container}>
         <View>
@@ -89,7 +85,7 @@ export default function NewAlarmScreen({navigation}) {
                 minimumDate={new Date()}
                 onChange={(event, selectedDate) => {
                   setShowPicker(false);
-                  setDate(selectedDate);
+                  setDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), selectedDate.getHours(), selectedDate.getMinutes(), 0, 0));
                 }}
               />}
             </View>
