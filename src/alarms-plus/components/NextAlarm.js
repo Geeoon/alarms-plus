@@ -27,7 +27,7 @@ export default function NextAlarm(props) {
         return () => {
             clearInterval(interval);
         }
-    });
+    }, []);
 
     useEffect(() => {
         let time = null;

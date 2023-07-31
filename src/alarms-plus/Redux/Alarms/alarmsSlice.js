@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 export const alarmsSlice = createSlice({
     name: 'alarms',
     initialState: {
-        alarms: []
+        alarms: [],
     },
     reducers: {
         addAlarm: (state, action) => {
@@ -22,9 +22,12 @@ export const alarmsSlice = createSlice({
         removeAlarmsBefore: (state, action) => {
             state.alarms = state.alarms.filter(alarm => alarm.date >= action.payload.date);
         },
+        setLastAlarmTime: (state, action) => {
+            state.lastAlarmTime = action.payload;
+        }
     }
 });
 
-export const { addAlarm, removeAlarm, removeAlarmsBefore } = alarmsSlice.actions;
+export const { addAlarm, removeAlarm, removeAlarmsBefore, setLastAlarmTime } = alarmsSlice.actions;
 
 export default alarmsSlice.reducer;

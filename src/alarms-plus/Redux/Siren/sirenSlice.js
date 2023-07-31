@@ -4,16 +4,17 @@ export const sirenSlice = createSlice({
     name: 'siren',
     initialState: {
         isOn: false,
-        alarmName: null
+        alarmName: null,
+        alarmDate: 0,
     },
     reducers: {
         sirenOn: (state, action) => {
             state.isOn = true;
-            state.alarmName = action.name;
+            state.alarmName = action.payload.name;
+            state.alarmDate = action.payload.date;
         },
         sirenOff: (state) => {
             state.isOn = false;
-            state.alarmName = null;
         },
     }
 });

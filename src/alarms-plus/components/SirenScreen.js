@@ -5,12 +5,14 @@ import { sirenOff } from '../Redux/Siren/sirenSlice';
 
 export default function SirenScreen({navigation}) {
     const alarmName = useSelector((state) => state.siren.alarmName);
+    const alarmDate = useSelector((state) => state.siren.alarmDate);
     const dispatch = useDispatch();
     
     return (
         <View style={styles.container}>
             <Text style={styles.text}>{alarmName}</Text>
-            <Button title='DISMISS' onPress={dispatch(sirenOff)}/>
+            <Text style={styles.text}>{new Date(alarmDate).toLocaleDateString([], {weekday: 'short', hour: '2-digit', minute:'2-digit'})}</Text>
+            <Button title='DISMISS' onPress={() => { dispatch(sirenOff()); }}/>
         </View>
     );
 }
@@ -23,6 +25,7 @@ const styles = StyleSheet.create({
   },
   text: {
     textAlign: 'center',
-    fontSize: 50
+    fontSize: 50,
+    color: 'black',
   },
 });
