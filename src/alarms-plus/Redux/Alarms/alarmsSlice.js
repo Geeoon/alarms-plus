@@ -18,16 +18,31 @@ export const alarmsSlice = createSlice({
         },
         removeAlarm: (state, action) => {
             state.alarms = state.alarms.filter(alarm => alarm.name !== action.payload.name);
+            // deactivate all alarms
+            state.alarms = state.alarms.map((alarm) => {
+                // reset all alarm activated status
+                alarm.activated = null;
+                return alarm;
+            });
         },
-        removeAlarmsBefore: (state, action) => {
+        removeAlarmsBefore: (state, action) => {            
             state.alarms = state.alarms.filter(alarm => alarm.date >= action.payload.date);
+            // deactivate all alarms
+            state.alarms = state.alarms.map((alarm) => {
+                // reset all alarm activated status
+                alarm.activated = null;
+                return alarm;
+            });
         },
         setLastAlarmTime: (state, action) => {
             state.lastAlarmTime = action.payload;
+        },
+        setAlarmActivated: (state, action) => {
+            state.alarms[action.payload.index].activated = action.payload.id;
         }
     }
 });
 
-export const { addAlarm, removeAlarm, removeAlarmsBefore, setLastAlarmTime } = alarmsSlice.actions;
+export const { addAlarm, removeAlarm, removeAlarmsBefore, setLastAlarmTime, setAlarmActivated } = alarmsSlice.actions;
 
 export default alarmsSlice.reducer;

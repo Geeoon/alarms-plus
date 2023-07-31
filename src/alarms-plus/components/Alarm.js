@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { Button, StyleSheet, Text, View, Alert } from 'react-native';
 import { useDispatch } from 'react-redux';
+import * as Notifications from 'expo-notifications';
 
 import { removeAlarm } from '../Redux/Alarms/alarmsSlice';
 
@@ -14,7 +15,11 @@ export default function Alarm(props) {
             },
             {
                 text: 'YES',
-                onPress: () => { dispatch(removeAlarm({ name: props.name })) },
+                onPress: async () => {
+                    // reset all scheduled notifications
+                    await Notifications.cancelAllScheduledNotificationsAsync();
+                    dispatch(removeAlarm({ name: props.name }));
+                 },
             },
         ]);
     }, [props.name]);
