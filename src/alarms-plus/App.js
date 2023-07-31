@@ -7,10 +7,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { sirenOn } from './Redux/Siren/sirenSlice';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as TaskManager from 'expo-task-manager';
 
 // purge react-native-push-notification
-// purge expo-background-fetch
-// purge expo-task-manager
 // purge react-native-background-job
 // purge react-native-background-timer
 
@@ -20,6 +20,13 @@ import SirenScreen from './components/SirenScreen';
 import store from './Redux/store';
 
 const Stack = createNativeStackNavigator();
+
+const TASK_NAME = 'BACKGROUND_TASK';
+
+TaskManager.defineTask(TASK_NAME, async () => {
+  checkAlarmsBackground();
+  return BackgroundFetch.BackgroundFetchResult.NewData;
+});
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -34,22 +41,24 @@ function checkAlarmsForeground() { // call this every second to check for alarms
   let alarmArray = store.getState().alarms.alarms;
 
   for (let i = 0; i < alarmArray.length; i++) {
-    if (alarmArray[i].date > lastAlarmDate)
-      if (alarmArray[i].date < Date.now()) {
+    if (alarmArray[i].date - 60000 * 60 > lastAlarmDate) {  // an hour ahead
+      if (alarmArray[i].date - 60000 * 60 < Date.now()) {
         store.dispatch(sirenOn({ name: alarmArray[i].name, date: alarmArray[i].date }));
-        schedulePushNotification(alarmArray[i].name, 'Alarm is going off!', 0).then(() => { console.log('pushed notification'); });
+        schedulePushNotification(alarmArray[i].name, 'Alarm is going off!', Math.trunc((Date.now() - alarmArray[i].date) / 1000)).then(() => { console.log('pushed notification'); });
         break;
       }
+    }
   }
 }
 
 function checkAlarmsBackground() {
+  console.log('checking...');
   let lastAlarmDate = store.getState().siren.alarmDate;
   let alarmArray = store.getState().alarms.alarms;
 
   for (let i = 0; i < alarmArray.length; i++) {
-    if (alarmArray[i].date - 60000 > lastAlarmDate) {  // a minute ahead
-      if (alarmArray[i].date - 60000 < Date.now()) {
+    if (alarmArray[i].date - 60000 * 60 > lastAlarmDate) {  // an hour ahead
+      if (alarmArray[i].date - 60000 * 60 < Date.now()) {
         store.dispatch(sirenOn({ name: alarmArray[i].name, date: alarmArray[i].date }));
         schedulePushNotification(alarmArray[i].name, 'Alarm is going off!', Math.trunc((Date.now() - alarmArray[i].date) / 1000)).then(() => { console.log('pushed notification'); });
         break;
@@ -83,7 +92,11 @@ export default function App() {
     return () => {
       Notifications.removeNotificationSubscription(notificationListener.current);
       Notifications.removeNotificationSubscription(responseListener.current);
-    }
+    };
+  }, []);
+
+  useEffect(() => {
+    RegisterBackgroundTask();
   }, []);
 
   useEffect(() => {
@@ -92,8 +105,6 @@ export default function App() {
     return () => {
       clearInterval(interval);
     }
-
-    // start background alarm checking task
   }, []);
 
   useEffect(() => {  // updates every second
@@ -140,6 +151,18 @@ export default function App() {
       <StatusBar style="light" />
     </NavigationContainer>
   );
+}
+
+async function RegisterBackgroundTask() {
+  return BackgroundFetch.registerTaskAsync(TASK_NAME, {
+    minimumInterval: 1, // is pretty much ignored
+    stopOnTerminate: false,
+    startOnBoot: true,
+  });
+}
+
+async function unregsiterBackgroundFetchAsync() {
+  return BackgroundFetch.unregisterTaskAsync(TASK_NAME);
 }
 
 export async function schedulePushNotification(title, body, time) {

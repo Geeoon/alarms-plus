@@ -25,6 +25,7 @@ export default function NewAlarmScreen({navigation}) {
             date: date.getTime(),
             repeats: repeats,
             repeatInterval: repeatInterval,
+            activated: false,
           }));
             Alert.alert('Alarm created.');
             navigation.navigate('Main');
