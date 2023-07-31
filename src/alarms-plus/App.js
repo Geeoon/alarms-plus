@@ -9,12 +9,6 @@ import { setAlarmActivated } from './Redux/Alarms/alarmsSlice';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 
-// purge expo-task-manager
-// purge expo-background-fetch
-// purge react-native-push-notification
-// purge react-native-background-job
-// purge react-native-background-timer
-
 import MainScreen from './components/MainScreen';
 import NewAlarmScreen from './components/NewAlarmScreen';
 import SirenScreen from './components/SirenScreen';
@@ -41,7 +35,7 @@ async function checkAlarmsForeground() { // call this every second to check for 
       console.log('scheduled notification');
       store.dispatch(setAlarmActivated({ index: i, id: id, }));
     }
-    if (alarmArray[i].date > lastAlarmDate) {  // an hour ahead
+    if (alarmArray[i].date > lastAlarmDate) {
       if (alarmArray[i].date < Date.now()) {
         store.dispatch(sirenOn({ name: alarmArray[i].name, date: alarmArray[i].date }));
         store.dispatch(setAlarmActivated({ index: i, id: null, }));
@@ -79,7 +73,6 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    // this is only needed if the background task doesn't work in the foreground
     const interval = setInterval(() => setCurrentTime(Date.now()), 1000);
     return () => {
       clearInterval(interval);
