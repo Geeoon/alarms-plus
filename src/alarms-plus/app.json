@@ -7,7 +7,15 @@
       "**/*"
     ],
     "ios": {
-      "UIBackgroundModes": ["location", "fetch"]
+      "UIBackgroundModes": [
+        "location",
+        "fetch"
+      ]
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7e3597bd-3d85-475b-88d1-b796a29c659c"
+      }
     }
   },
   "name": "alarms-plus"
