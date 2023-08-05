@@ -1,4 +1,4 @@
-package com.alarmsplus;
+package com.geeoon.alarmsplus;
 
 import android.os.Build;
 import android.os.Bundle;
