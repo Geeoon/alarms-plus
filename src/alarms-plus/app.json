@@ -14,7 +14,8 @@
       "UIBackgroundModes": [
         "location",
         "fetch"
-      ]
+      ],
+      "bundleIdentifier": "com.geeoon.alarmsplus"
     },
     "extra": {
       "eas": {
