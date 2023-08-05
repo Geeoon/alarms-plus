@@ -1,4 +1,4 @@
-package com.geeoon.alarmsplus;
+package com.alarmsplus;
 
 import android.app.Application;
 import android.content.res.Configuration;
