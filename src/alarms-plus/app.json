@@ -1,21 +1,16 @@
 {
   "expo": {
-    "name": "alarms-plus",
-    "slug": "alarms-plus",
+    "name": "alarmsplus",
+    "slug": "alarmsplus",
     "version": "1.0.0",
     "assetBundlePatterns": [
       "**/*"
     ],
-    "android": {
-      "package": "com.geeoon.alarmsplus",
-      "versionCode": 1
-    },
     "ios": {
       "UIBackgroundModes": [
         "location",
         "fetch"
-      ],
-      "bundleIdentifier": "com.geeoon.alarmsplus"
+      ]
     },
     "extra": {
       "eas": {
@@ -26,5 +21,5 @@
   "android": {
     "googleServicesFile": "./google-services.json"
   },
-  "name": "alarms-plus"
+  "name": "alarmsplus"
 }
