@@ -8,6 +8,7 @@ import { sirenOn } from './Redux/Siren/sirenSlice';
 import { setAlarmActivated } from './Redux/Alarms/alarmsSlice';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import * as TaskManager from 'expo-task-manager';
 
 import MainScreen from './components/MainScreen';
 import NewAlarmScreen from './components/NewAlarmScreen';
@@ -17,14 +18,31 @@ import store from './Redux/store';
 const Stack = createNativeStackNavigator();
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
+  handleNotification: async () => {
+    console.log("handleNotification called");
+    return {
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    };
+  },
+  handleSuccess: async () => {
+    console.log("Success");
+  },
+  handleError: async () => {
+    console.log("Error");
+  },
 });
 
-async function checkAlarmsForeground() { // call this every second to check for alarms
+const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
+
+TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, ({ data, error, executionInfo }) => {
+  console.log('Notification received in background');
+});
+
+Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+
+async function checkAlarms() { // call this every second to check for alarms
   let lastAlarmDate = store.getState().siren.alarmDate;
   let alarmArray = store.getState().alarms.alarms;
   
@@ -63,7 +81,6 @@ export default function App() {
       setNotification(notification);
     });
     responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log(response);
     });
 
     return () => {
@@ -80,7 +97,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {  // updates every second
-    checkAlarmsForeground();
+    checkAlarms();
   }, [currentTime]);
 
 
@@ -140,6 +157,19 @@ export async function schedulePushNotification(title, body, time) {
 
 async function registerForPushNotificationsAsync() {
   let token;
+
+  if (Platform.OS === 'android') {
+    Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      sound: true,
+      lightColor: '#FF231F7C',
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      bypassDnd: true,
+    });
+  }
+  
   if (Device.isDevice) {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
@@ -151,21 +181,11 @@ async function registerForPushNotificationsAsync() {
       alert('Fialed to get push token for push notification!');
       return;
     }
-    token = (await Notifications.getExpoPushTokenAsync()).data;
+    token = (await Notifications.getExpoPushTokenAsync({
+      projectId: '7e3597bd-3d85-475b-88d1-b796a29c659c',
+    })).data;
   } else {
     alert('Must use physical device to get alarms');
-  }
-
-  if (Platform.OS === 'android') {
-    Notifications.setNotificationCategoryAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      sound: true,
-      lightColor: '#FF231F7C',
-      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-      bypassDnd: true,
-    });
   }
 
   return token;

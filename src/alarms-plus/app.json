@@ -6,6 +6,10 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "android": {
+      "package": "com.geeoon.alarmsplus",
+      "versionCode": 1
+    },
     "ios": {
       "UIBackgroundModes": [
         "location",

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Button, StyleSheet, Text, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -7,6 +8,10 @@ export default function SirenScreen({navigation}) {
     const alarmName = useSelector((state) => state.siren.alarmName);
     const alarmDate = useSelector((state) => state.siren.alarmDate);
     const dispatch = useDispatch();
+
+    useEffect(() => {
+      // turn on alarm sound
+    }, []);
     
     return (
         <View style={styles.container}>
