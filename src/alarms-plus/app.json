@@ -9,7 +9,8 @@
     "ios": {
       "UIBackgroundModes": [
         "location",
-        "fetch"
+        "fetch",
+        "remote-notification"
       ]
     },
     "extra": {

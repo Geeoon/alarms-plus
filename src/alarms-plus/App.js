@@ -36,9 +36,12 @@ Notifications.setNotificationHandler({
 
 const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
 
-TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, ({ data, error, executionInfo }) => {
-  console.log('Notification received in background');
+if (!TaskManager.isTaskDefined(BACKGROUND_NOTIFICATION_TASK)) {
+  console.log("registering bg task");
+  TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, ({ data, error, executionInfo }) => {
+    console.log('Notification received in background');
 });
+}
 
 Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
 
@@ -50,7 +53,7 @@ async function checkAlarms() { // call this every second to check for alarms
   for (let i = 0; i < alarmArray.length; i++) {
     if (alarmArray[i].activated === null) {
       let id = await schedulePushNotification(alarmArray[i].name, 'Alarm is going off!', Math.trunc((alarmArray[i].date - Date.now()) / 1000));
-      console.log('scheduled notification');
+      console.log('scheduled notification for T+' + Math.trunc((alarmArray[i].date - Date.now()) / 1000) + ' seconds');
       store.dispatch(setAlarmActivated({ index: i, id: id, }));
     }
     if (alarmArray[i].date > lastAlarmDate) {
@@ -148,9 +151,9 @@ export async function schedulePushNotification(title, body, time) {
       title: title,
       body: body,
     },
-    trigger: time > 0 ? {
-      seconds: time
-    } : null,
+    trigger: (time > 0 ? {
+      seconds: time,
+    } : null),
   });
   return id;
 }
@@ -159,7 +162,7 @@ async function registerForPushNotificationsAsync() {
   let token;
 
   if (Platform.OS === 'android') {
-    Notifications.setNotificationChannelAsync('default', {
+    await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
