@@ -43,7 +43,7 @@ async function checkAlarms() { // call this every second to check for alarms
       let eventId = await Calendar.createEventAsync(store.getState().alarms.calendarId, {
         alarms: eventAlarms,
         startDate: new Date(alarmArray[i].date),
-        endDate: new Date(alarmArray[i].date + (alarmArray[i].repeats + 1) * alarmArray[i].repeatInterval),
+        endDate: new Date(alarmArray[i].date + ((alarmArray[i].repeats + 1) * alarmArray[i].repeatInterval * 60) * 1000),
         title: alarmArray[i].name,
       });
       console.log('scheduled event for T-' + Math.trunc((alarmArray[i].date - Date.now()) / 1000) + ' seconds');
