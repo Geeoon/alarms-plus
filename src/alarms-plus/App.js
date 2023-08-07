@@ -1,60 +1,53 @@
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useEffect, createRef, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { sirenOn } from './Redux/Siren/sirenSlice';
-import { setAlarmActivated } from './Redux/Alarms/alarmsSlice';
+import { setAlarmActivated, setCalendarId } from './Redux/Alarms/alarmsSlice';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
+import * as Calendar from 'expo-calendar';
+
+// purge expo-task-manager
+// purge expo-notifications
+// purge expo-device
 
 import MainScreen from './components/MainScreen';
 import NewAlarmScreen from './components/NewAlarmScreen';
 import SirenScreen from './components/SirenScreen';
 import store from './Redux/store';
 
+const CALENDAR_TITLE = 'Alarms Plus: Upcoming Alarms';
+const CALENDAR_NAME = 'alarmsPlusCalendar';
+
 const Stack = createNativeStackNavigator();
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => {
-    console.log("handleNotification called");
-    return {
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-    };
-  },
-  handleSuccess: async () => {
-    console.log("Success");
-  },
-  handleError: async () => {
-    console.log("Error");
-  },
-});
-
-const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
-
-if (!TaskManager.isTaskDefined(BACKGROUND_NOTIFICATION_TASK)) {
-  console.log("registering bg task");
-  TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, ({ data, error, executionInfo }) => {
-    console.log('Notification received in background');
-});
-}
-
-Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
 
 async function checkAlarms() { // call this every second to check for alarms
   let lastAlarmDate = store.getState().siren.alarmDate;
   let alarmArray = store.getState().alarms.alarms;
-  
 
   for (let i = 0; i < alarmArray.length; i++) {
     if (alarmArray[i].activated === null) {
-      let id = await schedulePushNotification(alarmArray[i].name, 'Alarm is going off!', Math.trunc((alarmArray[i].date - Date.now()) / 1000));
-      console.log('scheduled notification for T+' + Math.trunc((alarmArray[i].date - Date.now()) / 1000) + ' seconds');
-      store.dispatch(setAlarmActivated({ index: i, id: id, }));
+
+      // schedule event here
+      let eventAlarms = [];
+      for (let j = 1; j <= alarmArray[i].repeats; j++) {
+        eventAlarms = [...eventAlarms, {
+          method: Calendar.AlarmMethod.ALARM,
+          relativeOffset: j * alarmArray[i].repeatInterval,
+        }];
+      }
+      let eventId = await Calendar.createEventAsync(store.getState().alarms.calendarId, {
+        alarms: eventAlarms,
+        startDate: new Date(alarmArray[i].date),
+        endDate: new Date(alarmArray[i].date + (alarmArray[i].repeats + 1) * alarmArray[i].repeatInterval),
+        title: alarmArray[i].name,
+      });
+      console.log('scheduled event for T-' + Math.trunc((alarmArray[i].date - Date.now()) / 1000) + ' seconds');
+      store.dispatch(setAlarmActivated({ index: i, id: eventId, }));
     }
     if (alarmArray[i].date > lastAlarmDate) {
       if (alarmArray[i].date < Date.now()) {
@@ -66,30 +59,54 @@ async function checkAlarms() { // call this every second to check for alarms
   }
 }
 
-export default function App() {
-  const [expoPushToken, setExpoPushToken] = useState('');
-  const [notification, setNotification] = useState(false);
-  const notificationListener = useRef();
-  const responseListener = useRef();
+async function getDefaultCalendarSource() {
+  const defaultCalendar = await Calendar.getDefaultCalendarAsync();
+  return defaultCalendar.source;
+}
 
+async function createCalendar() {
+  const defaultCalendarSource =
+    Platform.OS === 'ios'
+      ? await getDefaultCalendarSource()
+      : { isLocalAccount: true, name: CALENDAR_TITLE };
+  const newCalendarID = await Calendar.createCalendarAsync({
+    title: CALENDAR_TITLE,
+    color: 'white',
+    entityType: Calendar.EntityTypes.EVENT,
+    sourceId: defaultCalendarSource.id,
+    source: defaultCalendarSource,
+    name: CALENDAR_NAME,
+    ownerAccount: 'personal',
+    accessLevel: Calendar.CalendarAccessLevel.OWNER,
+  });
+  return newCalendarID;
+}
+
+export default function App() {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const isSirenOn = useSelector((state) => state.siren.isOn);
   const navRef = createRef();
 
   useEffect(() => {
-    registerForPushNotificationsAsync().then((token) => {
-      setExpoPushToken(token);
-    });
-    notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
-      setNotification(notification);
-    });
-    responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-    });
+    (async () => {
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
+      if (status === 'granted') {
+        let globalCalendars = (await Calendar.getCalendarsAsync()).map((c) => {
+          return { id: c.id, name: c.name };
+        });
 
-    return () => {
-      Notifications.removeNotificationSubscription(notificationListener.current);
-      Notifications.removeNotificationSubscription(responseListener.current);
-    };
+        let calendar = globalCalendars.find(calendar => calendar.name === CALENDAR_NAME);
+        if (!calendar) {
+          let calId = await createCalendar();
+          store.dispatch(setCalendarId({ id: calId }));
+          console.log('created calendar, id: ' + calId);
+        } else {
+          store.dispatch(setCalendarId({ id: calendar.id }));
+        }
+      } else {
+        alert("You must allow this app to access the device calendar in order to get alarms!");
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -143,53 +160,4 @@ export default function App() {
       <StatusBar style="light" />
     </NavigationContainer>
   );
-}
-
-export async function schedulePushNotification(title, body, time) {
-  const id = await Notifications.scheduleNotificationAsync({
-    content: {
-      title: title,
-      body: body,
-    },
-    trigger: (time > 0 ? {
-      seconds: time,
-    } : null),
-  });
-  return id;
-}
-
-async function registerForPushNotificationsAsync() {
-  let token;
-
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      sound: true,
-      lightColor: '#FF231F7C',
-      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-      bypassDnd: true,
-    });
-  }
-  
-  if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    if (finalStatus !== 'granted') {
-      alert('Fialed to get push token for push notification!');
-      return;
-    }
-    token = (await Notifications.getExpoPushTokenAsync({
-      projectId: '7e3597bd-3d85-475b-88d1-b796a29c659c',
-    })).data;
-  } else {
-    alert('Must use physical device to get alarms');
-  }
-
-  return token;
 }

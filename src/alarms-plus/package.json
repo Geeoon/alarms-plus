@@ -27,7 +27,8 @@
     "react-native-screens": "~3.22.0",
     "react-native-track-player": "^3.2.0",
     "react-redux": "^8.1.1",
-    "redux": "^4.2.1"
+    "redux": "^4.2.1",
+    "expo-calendar": "~11.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

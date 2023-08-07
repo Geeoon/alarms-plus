@@ -4,6 +4,8 @@ export const alarmsSlice = createSlice({
     name: 'alarms',
     initialState: {
         alarms: [],
+        calendarId: null,
+        lastAlarmTime: -1,
     },
     reducers: {
         addAlarm: (state, action) => {
@@ -39,10 +41,13 @@ export const alarmsSlice = createSlice({
         },
         setAlarmActivated: (state, action) => {
             state.alarms[action.payload.index].activated = action.payload.id;
+        },
+        setCalendarId: (state, action) => {
+            state.calendarId = action.payload.id;
         }
     }
 });
 
-export const { addAlarm, removeAlarm, removeAlarmsBefore, setLastAlarmTime, setAlarmActivated } = alarmsSlice.actions;
+export const { addAlarm, removeAlarm, removeAlarmsBefore, setLastAlarmTime, setAlarmActivated, setCalendarId } = alarmsSlice.actions;
 
 export default alarmsSlice.reducer;

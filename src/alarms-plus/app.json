@@ -7,11 +7,15 @@
       "**/*"
     ],
     "ios": {
-      "UIBackgroundModes": [
-        "location",
-        "fetch",
-        "remote-notification"
-      ]
+      "infoPlist": {
+        "NSCalendarsUsageDescription": "Allow $(PRODUCT_NAME) to access your calendar",
+        "NSRemindersUsageDescription": "Allow $(PRODUCT_NAME) to access your reminders",
+        "UIBackgroundModes": [
+          "location",
+          "fetch",
+          "remote-notification"
+        ]
+      }
     },
     "extra": {
       "eas": {
