@@ -1,6 +1,9 @@
 {
   "expo": {
-    "name": "alarms-plus",
+    "name": "Alarms Plus",
+    "plugins": [
+      "@notifee/react-native"
+    ],
     "slug": "alarms-plus",
     "version": "1.0.0",
     "assetBundlePatterns": [
@@ -8,8 +11,6 @@
     ],
     "ios": {
       "infoPlist": {
-        "NSCalendarsUsageDescription": "Allow $(PRODUCT_NAME) to access your calendar",
-        "NSRemindersUsageDescription": "Allow $(PRODUCT_NAME) to access your reminders",
         "UIBackgroundModes": [
           "location",
           "fetch",

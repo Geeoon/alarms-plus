@@ -1,16 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Platform, View } from 'react-native';
+import { View, Alert } from 'react-native';
 import { useEffect, createRef, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { sirenOn } from './Redux/Siren/sirenSlice';
-import { setAlarmActivated, setCalendarId } from './Redux/Alarms/alarmsSlice';
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
-import * as TaskManager from 'expo-task-manager';
-import * as Calendar from 'expo-calendar';
+import { setAlarmActivated } from './Redux/Alarms/alarmsSlice';
+import notifee, { TriggerType, AuthorizationStatus, AndroidNotificationSetting } from '@notifee/react-native';
 
+const CHANNEL_ID = 'default';
+// react-native-push-notication
+// purge expo-calendar
 // purge expo-task-manager
 // purge expo-notifications
 // purge expo-device
@@ -20,10 +20,33 @@ import NewAlarmScreen from './components/NewAlarmScreen';
 import SirenScreen from './components/SirenScreen';
 import store from './Redux/store';
 
-const CALENDAR_TITLE = 'Alarms Plus: Upcoming Alarms';
-const CALENDAR_NAME = 'alarmsPlusCalendar';
-
 const Stack = createNativeStackNavigator();
+
+notifee.onBackgroundEvent(async () => {
+  // Linking.openURL('alarms-plus://');
+  console.log("background event.");
+});
+
+async function scheudleNotification(title, body, time) {
+  const trigger = {
+    type: TriggerType.TIMESTAMP,
+    timestamp: Date.now() > time ? Date.now() + 1000 : time,
+  };
+
+  return await notifee.createTriggerNotification(
+    {
+      title: title,
+      body: body,
+      android: {
+        channelId: CHANNEL_ID,
+        pressAction: {
+          id: 'default',
+        },
+      },
+    },
+    trigger,
+  );
+}
 
 async function checkAlarms() { // call this every second to check for alarms
   let lastAlarmDate = store.getState().siren.alarmDate;
@@ -31,23 +54,13 @@ async function checkAlarms() { // call this every second to check for alarms
 
   for (let i = 0; i < alarmArray.length; i++) {
     if (alarmArray[i].activated === null) {
+      // schedule alarm
+      const notId = await scheudleNotification(alarmArray[i].name, 'Your alarm is going off.', alarmArray[i].date);
 
-      // schedule event here
-      let eventAlarms = [];
-      for (let j = 1; j <= alarmArray[i].repeats; j++) {
-        eventAlarms = [...eventAlarms, {
-          method: Calendar.AlarmMethod.ALARM,
-          relativeOffset: j * alarmArray[i].repeatInterval,
-        }];
+      console.log('scheduled alarm for ' + Math.trunc((alarmArray[i].date - Date.now()) / 1000) + ' seconds from now. ' + notId);
+      if (notId) {
+        store.dispatch(setAlarmActivated({ index: i, id: notId, }));
       }
-      let eventId = await Calendar.createEventAsync(store.getState().alarms.calendarId, {
-        alarms: eventAlarms,
-        startDate: new Date(alarmArray[i].date),
-        endDate: new Date(alarmArray[i].date + ((alarmArray[i].repeats + 1) * alarmArray[i].repeatInterval * 60) * 1000),
-        title: alarmArray[i].name,
-      });
-      console.log('scheduled event for T-' + Math.trunc((alarmArray[i].date - Date.now()) / 1000) + ' seconds');
-      store.dispatch(setAlarmActivated({ index: i, id: eventId, }));
     }
     if (alarmArray[i].date > lastAlarmDate) {
       if (alarmArray[i].date < Date.now()) {
@@ -59,29 +72,6 @@ async function checkAlarms() { // call this every second to check for alarms
   }
 }
 
-async function getDefaultCalendarSource() {
-  const defaultCalendar = await Calendar.getDefaultCalendarAsync();
-  return defaultCalendar.source;
-}
-
-async function createCalendar() {
-  const defaultCalendarSource =
-    Platform.OS === 'ios'
-      ? await getDefaultCalendarSource()
-      : { isLocalAccount: true, name: CALENDAR_TITLE };
-  const newCalendarID = await Calendar.createCalendarAsync({
-    title: CALENDAR_TITLE,
-    color: 'white',
-    entityType: Calendar.EntityTypes.EVENT,
-    sourceId: defaultCalendarSource.id,
-    source: defaultCalendarSource,
-    name: CALENDAR_NAME,
-    ownerAccount: 'personal',
-    accessLevel: Calendar.CalendarAccessLevel.OWNER,
-  });
-  return newCalendarID;
-}
-
 export default function App() {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const isSirenOn = useSelector((state) => state.siren.isOn);
@@ -89,23 +79,78 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const { status } = await Calendar.requestCalendarPermissionsAsync();
-      if (status === 'granted') {
-        let globalCalendars = (await Calendar.getCalendarsAsync()).map((c) => {
-          return { id: c.id, name: c.name };
-        });
+      // get permissions
+      await notifee.requestPermission();
 
-        let calendar = globalCalendars.find(calendar => calendar.name === CALENDAR_NAME);
-        if (!calendar) {
-          let calId = await createCalendar();
-          store.dispatch(setCalendarId({ id: calId }));
-          console.log('created calendar, id: ' + calId);
-        } else {
-          store.dispatch(setCalendarId({ id: calendar.id }));
-        }
-      } else {
-        alert("You must allow this app to access the device calendar in order to get alarms!");
-      }
+      // create a notification channel
+      const channelId = await notifee.createChannel({
+        id: CHANNEL_ID,
+        name: 'Default Channel',
+      });
+
+      // check notification issues
+      // if ((await notifee.getNotificationSettings()) != AuthorizationStatus.AUTHORIZED) {
+      //   Alert.alert(
+      //     'Restrictions Detected', 'Please enable notifications for the app.', [
+      //       //launch the settings
+      //       {
+      //         text: 'Open Settings',
+      //         onPress: async() => await notifee.openNotificationSettings(),
+      //       },
+      //       {
+      //         text: "Ignore (The App Won't Work)",
+      //         style: 'cancel'
+      //       }
+      //   ]);
+      // }
+
+      // // check alarm issues
+      // if ((await notifee.getNotificationSettings()) != AndroidNotificationSetting.ENABLED) {
+      //   Alert.alert(
+      //     'Restrictions Detected', 'Please disable battery optimization for the app.', [
+      //       //launch the settings
+      //       {
+      //         text: 'Open Settings',
+      //         onPress: async() => await notifee.openAlarmPermissionSettings(),
+      //       },
+      //       {
+      //         text: "Ignore (The App Won't Work)",
+      //         style: 'cancel'
+      //       }
+      //   ]);
+      // }
+      
+      // check for battery optimization
+      // if (await notifee.isBatteryOptimizationEnabled()) {
+      //   Alert.alert(
+      //     'Restrictions Detected', 'Please disable battery optimization for the app.', [
+      //       //launch the settings
+      //       {
+      //         text: 'Open Settings',
+      //         onPress: async() => await notifee.openBatteryOptimizationSettings(),
+      //       },
+      //       {
+      //         text: "Ignore (The App Won't Work)",
+      //         style: 'cancel'
+      //       }
+      //   ]);
+      // }
+
+      // check for power management issues
+      // if ((await notifee.getPowerManagerInfo()).activity) {
+      //   Alert.alert(
+      //     'Restrictions Detected', 'Please change settings to prevent this app from being killed in the background.', [
+      //       // launch the settings
+      //       {
+      //         text: 'Open Settings',
+      //         onPress: async() => await notifee.openPowerManagerSettings(),
+      //       },
+      //       {
+      //         text: "Ignore (The App Won't Work)",
+      //         style: 'cancel'
+      //       }
+      //   ]);
+      // }
     })();
   }, []);
 
