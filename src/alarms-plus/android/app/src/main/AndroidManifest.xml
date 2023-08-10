@@ -6,6 +6,7 @@
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+  <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY"/>
   <queries>
     <intent>
       <action android:name="android.intent.action.VIEW"/>
@@ -22,7 +23,6 @@
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
         <category android:name="android.intent.category.LAUNCHER"/>
-        <data android:scheme="alarms-plus"/>
       </intent-filter>
       <intent-filter>
         <action android:name="android.intent.action.VIEW"/>

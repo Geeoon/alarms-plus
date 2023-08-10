@@ -7,23 +7,41 @@ import { useSelector } from 'react-redux';
 import { sirenOn } from './Redux/Siren/sirenSlice';
 import { setAlarmActivated } from './Redux/Alarms/alarmsSlice';
 import notifee, { TriggerType, AuthorizationStatus, AndroidNotificationSetting } from '@notifee/react-native';
-
-const CHANNEL_ID = 'default';
-// react-native-push-notication
-// purge expo-calendar
-// purge expo-task-manager
-// purge expo-notifications
-// purge expo-device
+import Sound from 'react-native-sound';
+import SystemSetting from 'react-native-system-setting';
 
 import MainScreen from './components/MainScreen';
 import NewAlarmScreen from './components/NewAlarmScreen';
 import SirenScreen from './components/SirenScreen';
 import store from './Redux/store';
 
+const CHANNEL_ID = 'default';
 const Stack = createNativeStackNavigator();
+Sound.setCategory('Playback');
+
+var systemVolume = 0;  // set default volume, doesn't really matter what it is.
+var buzzSound = new Sound(require('./sounds/buzz.mp3'), (error) => {
+  if (error) {
+    Alert.alert("Unable to load sound, alarms will be silent!");
+    console.log(error);
+    return;
+  }
+});
+
+buzzSound.setNumberOfLoops(-1);
+buzzSound.setVolume(1);
 
 notifee.onBackgroundEvent(async () => {
-  // Linking.openURL('alarms-plus://');
+  SystemSetting.getVolume().then((volume) => {
+    systemVolume = volume
+  });
+  SystemSetting.setVolume(1);
+  buzzSound.play((success) => {
+    if (!success) {
+      console.log("playback failed");
+    }
+  });
+
   console.log("background event.");
 });
 
@@ -170,8 +188,17 @@ export default function App() {
     if (navRef.current) {
       if (isSirenOn) {
         navRef.current?.navigate('Siren On');
+        SystemSetting.getVolume().then((vol) => {
+          systemVolume = vol;
+        });  // unless the volume is already at max
+        SystemSetting.setVolume(1);
+        buzzSound.play();
       } else {
         navRef.current?.navigate('Main');
+        if (!!systemVolume) {
+          SystemSetting.setVolume(systemVolume);
+        }
+        buzzSound.stop();
       }
     }
   }, [isSirenOn]);

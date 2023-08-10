@@ -20,9 +20,10 @@
     },
     "extra": {
       "eas": {
-        "projectId": "7e3597bd-3d85-475b-88d1-b796a29c659c"
+        "projectId": "325d1a69-22c1-4683-a94b-25ae6243d10d"
       }
-    }
+    },
+    "owner": "geeoonuw"
   },
   "android": {
     "googleServicesFile": "./google-services.json"
