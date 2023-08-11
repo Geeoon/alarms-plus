@@ -6,7 +6,7 @@ import { useEffect, createRef, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { sirenOn } from './Redux/Siren/sirenSlice';
 import { setAlarmActivated } from './Redux/Alarms/alarmsSlice';
-import notifee, { TriggerType, AuthorizationStatus, AndroidNotificationSetting } from '@notifee/react-native';
+import notifee, { TriggerType, AuthorizationStatus, AndroidNotificationSetting, EventType } from '@notifee/react-native';
 import Sound from 'react-native-sound';
 import SystemSetting from 'react-native-system-setting';
 
@@ -23,7 +23,6 @@ var systemVolume = 0;  // set default volume, doesn't really matter what it is.
 var buzzSound = new Sound(require('./sounds/buzz.mp3'), (error) => {
   if (error) {
     Alert.alert("Unable to load sound, alarms will be silent!");
-    console.log(error);
     return;
   }
 });
@@ -31,18 +30,37 @@ var buzzSound = new Sound(require('./sounds/buzz.mp3'), (error) => {
 buzzSound.setNumberOfLoops(-1);
 buzzSound.setVolume(1);
 
-notifee.onBackgroundEvent(async () => {
-  SystemSetting.getVolume().then((volume) => {
-    systemVolume = volume
-  });
-  SystemSetting.setVolume(1);
-  buzzSound.play((success) => {
-    if (!success) {
-      console.log("playback failed");
+notifee.onBackgroundEvent(async ({type, detail}) => {
+    if (type === EventType.DELIVERED) {
+      SystemSetting.getVolume().then((volume) => {
+        systemVolume = volume
+      });
+      SystemSetting.setVolume(1);
+      buzzSound.play((success) => {
+      });
+    }
+});
+
+notifee.registerForegroundService((notification) => {
+  return new Promise(() => {
+    if (!buzzSound) {
+      buzzSound = new Sound(require('./sounds/buzz.mp3'), (error) => {
+        if (error) {
+          Alert.alert("Unable to load sound, alarms will be silent!");
+          return;
+        }
+      });
     }
   });
+});
 
-  console.log("background event.");
+notifee.displayNotification({
+  title: 'Alarms Activated!  You May Close the App',
+  body: 'It is now safe to close the app and still get notifications!',
+  android: {
+    channelId: CHANNEL_ID,
+    asForegroundService: true,
+  }
 });
 
 async function scheudleNotification(title, body, time) {
@@ -74,8 +92,6 @@ async function checkAlarms() { // call this every second to check for alarms
     if (alarmArray[i].activated === null) {
       // schedule alarm
       const notId = await scheudleNotification(alarmArray[i].name, 'Your alarm is going off.', alarmArray[i].date);
-
-      console.log('scheduled alarm for ' + Math.trunc((alarmArray[i].date - Date.now()) / 1000) + ' seconds from now. ' + notId);
       if (notId) {
         store.dispatch(setAlarmActivated({ index: i, id: notId, }));
       }
@@ -105,70 +121,73 @@ export default function App() {
         id: CHANNEL_ID,
         name: 'Default Channel',
       });
-
+      
+      let notificationSettings = await notifee.getNotificationSettings();
       // check notification issues
-      // if ((await notifee.getNotificationSettings()) != AuthorizationStatus.AUTHORIZED) {
-      //   Alert.alert(
-      //     'Restrictions Detected', 'Please enable notifications for the app.', [
-      //       //launch the settings
-      //       {
-      //         text: 'Open Settings',
-      //         onPress: async() => await notifee.openNotificationSettings(),
-      //       },
-      //       {
-      //         text: "Ignore (The App Won't Work)",
-      //         style: 'cancel'
-      //       }
-      //   ]);
-      // }
+      if (notificationSettings.authorizationStatus === AuthorizationStatus.DENIED) {
+        Alert.alert(
+          'Restrictions Detected', 'Please enable notifications for the app.', [
+            //launch the settings
+            {
+              text: 'Open Settings',
+              onPress: async() => await notifee.openNotificationSettings(),
+            },
+            {
+              text: "Ignore (The App Won't Work)",
+              style: 'cancel'
+            }
+        ]);
+      }
 
       // // check alarm issues
-      // if ((await notifee.getNotificationSettings()) != AndroidNotificationSetting.ENABLED) {
-      //   Alert.alert(
-      //     'Restrictions Detected', 'Please disable battery optimization for the app.', [
-      //       //launch the settings
-      //       {
-      //         text: 'Open Settings',
-      //         onPress: async() => await notifee.openAlarmPermissionSettings(),
-      //       },
-      //       {
-      //         text: "Ignore (The App Won't Work)",
-      //         style: 'cancel'
-      //       }
-      //   ]);
-      // }
+      if (notificationSettings.android.alarm === AuthorizationStatus.DENIED) {
+        Alert.alert(
+          'Restrictions Detected', 'Please disable battery optimization for the app.', [
+            //launch the settings
+            {
+              text: 'Open Settings',
+              onPress: async() => await notifee.openAlarmPermissionSettings(),
+            },
+            {
+              text: "Ignore (The App Won't Work)",
+              style: 'cancel'
+            }
+        ]);
+      }
       
       // check for battery optimization
-      // if (await notifee.isBatteryOptimizationEnabled()) {
-      //   Alert.alert(
-      //     'Restrictions Detected', 'Please disable battery optimization for the app.', [
-      //       //launch the settings
-      //       {
-      //         text: 'Open Settings',
-      //         onPress: async() => await notifee.openBatteryOptimizationSettings(),
-      //       },
-      //       {
-      //         text: "Ignore (The App Won't Work)",
-      //         style: 'cancel'
-      //       }
-      //   ]);
-      // }
+      if (await notifee.isBatteryOptimizationEnabled()) {
+        Alert.alert(
+          'Restrictions Detected', 'Please disable battery optimization for the app.', [
+            //launch the settings
+            {
+              text: 'Open Settings',
+              onPress: async() => await notifee.openBatteryOptimizationSettings(),
+            },
+            {
+              text: "Ignore (The App Won't Work)",
+              style: 'cancel'
+            }
+        ]);
+      }
 
       // check for power management issues
-      // if ((await notifee.getPowerManagerInfo()).activity) {
-      //   Alert.alert(
-      //     'Restrictions Detected', 'Please change settings to prevent this app from being killed in the background.', [
-      //       // launch the settings
-      //       {
-      //         text: 'Open Settings',
-      //         onPress: async() => await notifee.openPowerManagerSettings(),
-      //       },
-      //       {
-      //         text: "Ignore (The App Won't Work)",
-      //         style: 'cancel'
-      //       }
-      //   ]);
-      // }
+      const powerManagerInfo = await notifee.getPowerManagerInfo();
+      if (powerManagerInfo.activity) {
+        Alert.alert(
+          'Restrictions Detected', 'Please change settings to prevent this app from being killed in the background.', [
+            // launch the settings
+            {
+              text: 'Open Settings',
+              onPress: async() => await notifee.openPowerManagerSettings(),
+            },
+            {
+              text: "Ignore and Don't Ask Again",
+              onPress: async () => { console.log('ignore') },
+              style: 'cancel'
+            }
+        ]);
+      }
     })();
   }, []);
 
@@ -190,7 +209,7 @@ export default function App() {
         navRef.current?.navigate('Siren On');
         SystemSetting.getVolume().then((vol) => {
           systemVolume = vol;
-        });  // unless the volume is already at max
+        });
         SystemSetting.setVolume(1);
         buzzSound.play();
       } else {
