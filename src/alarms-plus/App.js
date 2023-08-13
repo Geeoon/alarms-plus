@@ -2,11 +2,11 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, Alert } from 'react-native';
-import { useEffect, createRef, useState, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useEffect, createRef, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { sirenOn } from './Redux/Siren/sirenSlice';
 import { setAlarmActivated } from './Redux/Alarms/alarmsSlice';
-import notifee, { TriggerType, AuthorizationStatus, AndroidNotificationSetting, EventType } from '@notifee/react-native';
+import notifee, { TriggerType, AuthorizationStatus, AndroidNotificationSetting, EventType, AndroidImportance, AndroidVisibility } from '@notifee/react-native';
 import Sound from 'react-native-sound';
 import SystemSetting from 'react-native-system-setting';
 
@@ -14,6 +14,7 @@ import MainScreen from './components/MainScreen';
 import NewAlarmScreen from './components/NewAlarmScreen';
 import SirenScreen from './components/SirenScreen';
 import store from './Redux/store';
+import { toggleIgnoreBattery } from './Redux/Ignores/ignoresSlice';
 
 const CHANNEL_ID = 'default';
 const Stack = createNativeStackNavigator();
@@ -25,10 +26,9 @@ var buzzSound = new Sound(require('./sounds/buzz.mp3'), (error) => {
     Alert.alert("Unable to load sound, alarms will be silent!");
     return;
   }
+  buzzSound.setNumberOfLoops(-1);
+  buzzSound.setVolume(1);
 });
-
-buzzSound.setNumberOfLoops(-1);
-buzzSound.setVolume(1);
 
 notifee.onBackgroundEvent(async ({type, detail}) => {
     if (type === EventType.DELIVERED) {
@@ -36,6 +36,7 @@ notifee.onBackgroundEvent(async ({type, detail}) => {
         systemVolume = volume
       });
       SystemSetting.setVolume(1);
+      buzzSound.setSpeakerphoneOn(true);
       buzzSound.play((success) => {
       });
     }
@@ -49,24 +50,22 @@ notifee.registerForegroundService((notification) => {
           Alert.alert("Unable to load sound, alarms will be silent!");
           return;
         }
+        buzzSound.getNumberOfLoops(-1);
+        buzzSound.setVolume(1);
       });
     }
   });
-});
-
-notifee.displayNotification({
-  title: 'Alarms Activated!  You May Close the App',
-  body: 'It is now safe to close the app and still get notifications!',
-  android: {
-    channelId: CHANNEL_ID,
-    asForegroundService: true,
-  }
 });
 
 async function scheudleNotification(title, body, time) {
   const trigger = {
     type: TriggerType.TIMESTAMP,
     timestamp: Date.now() > time ? Date.now() + 1000 : time,
+    importance: AndroidImportance.HIGH,
+    visibility: AndroidVisibility.PUBLIC,
+    alarmManager: {
+      allowWhileIdle: true,
+    },
   };
 
   return await notifee.createTriggerNotification(
@@ -109,7 +108,9 @@ async function checkAlarms() { // call this every second to check for alarms
 export default function App() {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const isSirenOn = useSelector((state) => state.siren.isOn);
+  const ignoreBattery = useSelector((state) => state.ignores.ignoreBattery);
   const navRef = createRef();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     (async () => {
@@ -173,9 +174,9 @@ export default function App() {
 
       // check for power management issues
       const powerManagerInfo = await notifee.getPowerManagerInfo();
-      if (powerManagerInfo.activity) {
+      if (powerManagerInfo.activity && !ignoreBattery) {
         Alert.alert(
-          'Restrictions Detected', 'Please change settings to prevent this app from being killed in the background.', [
+          'Possible Restrictions', 'This device is known to have settings that will kill this app in the background. Please disable them. If you have already addressed these issues, you can ignore this warning.', [
             // launch the settings
             {
               text: 'Open Settings',
@@ -183,11 +184,19 @@ export default function App() {
             },
             {
               text: "Ignore and Don't Ask Again",
-              onPress: async () => { console.log('ignore') },
+              onPress: async () => { dispatch(toggleIgnoreBattery()) },
               style: 'cancel'
             }
         ]);
       }
+      notifee.displayNotification({
+        title: 'Alarms Activated!  You May Close the App',
+        body: 'It is now safe to swipe away the app from the miltitasking menu!',
+        android: {
+          channelId: CHANNEL_ID,
+          asForegroundService: true,
+        }
+      });
     })();
   }, []);
 
@@ -211,11 +220,12 @@ export default function App() {
           systemVolume = vol;
         });
         SystemSetting.setVolume(1);
+        buzzSound.setSpeakerphoneOn(true);
         buzzSound.play();
       } else {
         navRef.current?.navigate('Main');
         if (!!systemVolume) {
-          SystemSetting.setVolume(systemVolume);
+          SystemSetting.setVolume(0.50);
         }
         buzzSound.stop();
       }

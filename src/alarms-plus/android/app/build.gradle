@@ -87,9 +87,9 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace 'com.alarmsplus'
+    namespace 'com.geeoon.alarmsplus'
     defaultConfig {
-        applicationId 'com.alarmsplus'
+        applicationId 'com.geeoon.alarmsplus'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
