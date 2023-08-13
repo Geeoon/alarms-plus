@@ -90,7 +90,10 @@ async function checkAlarms() { // call this every second to check for alarms
   for (let i = 0; i < alarmArray.length; i++) {
     if (alarmArray[i].activated === null) {
       // schedule alarm
-      const notId = await scheudleNotification(alarmArray[i].name, 'Your alarm is going off.', alarmArray[i].date);
+      let notId = null;
+      for (let j = 0; i <= alarmArray[i].repeats; j++) {
+        notId = await scheudleNotification(alarmArray[i].name, 'Your alarm is going off.', alarmArray[i].date + 60000 * j * alarmArray[i].repeatInterval);
+      }
       if (notId) {
         store.dispatch(setAlarmActivated({ index: i, id: notId, }));
       }
